@@ -8,9 +8,10 @@ Call Matlab code from Python.
 The code works under Linux. Not sure about Windows.
 
 TODO:
-	- add documentation
-    - use 'somepattern'.format(...) instead of old 'somepattern' % (...) style
-    - make it work under windows
+
+- add documentation
+- use 'somepattern'.format(...) instead of old 'somepattern' % (...) style
+- make it work under windows
 
 
 Dependencies
