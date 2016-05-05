@@ -43,8 +43,7 @@ class MatlabCaller(object):
     def _create_callstring(self):
 
         if self.use_octave:
-            callstr = 'octave --no-gui --jit-compiler --wait'
-            callstr += ' --eval "'
+            callstr = 'octave --no-gui --eval "'
         else:
             callstr = 'matlab -nosplash'
             if self.single_comp_thread:
@@ -121,7 +120,7 @@ class MatlabCaller(object):
             if len(output_names) > 0:
                 # Save outputs
                 outfile = join(tempdir, 'output_vars.mat')
-                callstr += ' save %s %s;' % (outfile, output_list)
+                callstr += ' save -v7 %s %s;' % (outfile, output_list)
 
             # Don't forget to exit matlab
             callstr += ' exit()"'
