@@ -15,6 +15,8 @@
     Currently, the module will only work under Linux.
 """
 
+from __future__ import print_function
+
 import numpy as np
 import os
 from os.path import join, exists, split
@@ -28,9 +30,14 @@ import platform
 class MatlabCaller(object):
     """Wrapper for calling Matlab functions from Python"""
 
-    def __init__(self, addpath=None, tempdir=None, verbose=True,
-                 single_comp_thread=True, use_octave=False,
-                 no_jvm=True, no_display=True):
+    def __init__(self,
+                 addpath=None,
+                 tempdir=None,
+                 verbose=True,
+                 single_comp_thread=True,
+                 use_octave=False,
+                 no_jvm=True,
+                 no_display=True):
 
         self.addpath = addpath
         self.tempdir = tempdir
@@ -127,7 +134,7 @@ class MatlabCaller(object):
 
             # Actual function call
             if self.verbose:
-                print callstr
+                print(callstr)
 
             cmdfile = join(tempdir, 'commands.sh')
             with open(cmdfile, 'w') as f:
@@ -160,7 +167,8 @@ class MatlabCaller(object):
 
             if len(output_names) > 0:
                 # Load results
-                result = loadmat(outfile, struct_as_record=struct_as_record,
+                result = loadmat(outfile,
+                                 struct_as_record=struct_as_record,
                                  squeeze_me=squeeze_me)
 
         finally:
@@ -178,4 +186,4 @@ if __name__ == '__main__':
     mc = MatlabCaller(addpath=mpath)
     res = mc.call('do_something', input_dict=dict(X=X, y=y),
                   input_order=['X', 'y'], output_names=['z'])
-    print res
+    print(res)
