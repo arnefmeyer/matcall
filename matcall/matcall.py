@@ -15,6 +15,8 @@
     Currently, the module will only work under Linux.
 """
 
+from __future__ import print_function
+
 import numpy as np
 import os
 from os.path import join, exists, split
@@ -127,7 +129,7 @@ class MatlabCaller(object):
 
             # Actual function call
             if self.verbose:
-                print callstr
+                print(callstr)
 
             cmdfile = join(tempdir, 'commands.sh')
             with open(cmdfile, 'w') as f:
@@ -178,4 +180,4 @@ if __name__ == '__main__':
     mc = MatlabCaller(addpath=mpath)
     res = mc.call('do_something', input_dict=dict(X=X, y=y),
                   input_order=['X', 'y'], output_names=['z'])
-    print res
+    print(res)
