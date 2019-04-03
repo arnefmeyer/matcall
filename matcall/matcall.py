@@ -30,9 +30,14 @@ import platform
 class MatlabCaller(object):
     """Wrapper for calling Matlab functions from Python"""
 
-    def __init__(self, addpath=None, tempdir=None, verbose=True,
-                 single_comp_thread=True, use_octave=False,
-                 no_jvm=True, no_display=True):
+    def __init__(self,
+                 addpath=None,
+                 tempdir=None,
+                 verbose=True,
+                 single_comp_thread=True,
+                 use_octave=False,
+                 no_jvm=True,
+                 no_display=True):
 
         self.addpath = addpath
         self.tempdir = tempdir
@@ -162,7 +167,8 @@ class MatlabCaller(object):
 
             if len(output_names) > 0:
                 # Load results
-                result = loadmat(outfile, struct_as_record=struct_as_record,
+                result = loadmat(outfile,
+                                 struct_as_record=struct_as_record,
                                  squeeze_me=squeeze_me)
 
         finally:
