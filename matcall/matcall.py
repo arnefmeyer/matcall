@@ -22,9 +22,65 @@ import os
 from os.path import join, exists, split
 import tempfile
 from scipy.io import savemat, loadmat
+from scipy.io.matlab.mio5_params import mat_struct
+import h5py
 import shutil
 import subprocess
 import platform
+
+
+def iter_struct(parent, output,
+                depth=0,
+                verbose=False,
+                squeeze_me=True):
+    # iteratively walk through a v7.3 mat file and create a scipy mat_struct
+
+    keys = list(parent)
+
+    if verbose:
+        print(depth, keys)
+
+    for k in keys:
+
+        if not k.startswith('#') and not k.startswith('_'):
+
+            child = parent[k]
+
+            if type(child) == h5py.Group:
+
+                if verbose:
+                    print("  group", depth, k, child)
+
+                setattr(output, k, mat_struct())
+                iter_struct(child, getattr(output, k),
+                            depth=depth+1,
+                            verbose=verbose)
+
+            elif type(child) == h5py.Dataset:
+
+                if verbose:
+                    print("  data set", depth, k)
+
+                if squeeze_me:
+                    value = np.squeeze(np.asarray(child))
+                else:
+                    value = np.asarray(child)
+                setattr(output, k, value)
+
+
+def convert_mat_7_3_to_struct(mat_file,
+                              verbose=False,
+                              squeeze_me=True):
+
+    result = mat_struct()
+
+    with h5py.File(mat_file, 'r') as f:
+
+        iter_struct(f, result,
+                    verbose=verbose,
+                    squeeze_me=squeeze_me)
+
+    return result
 
 
 class MatlabCaller(object):
@@ -63,9 +119,16 @@ class MatlabCaller(object):
 
         return callstr
 
-    def call(self, func, input_dict, input_order=None, kwarg_names=None,
-             output_names=None, delete_inputs=False, pre_call=None,
-             post_call=None, struct_as_record=False, squeeze_me=True):
+    def call(self, func, input_dict,
+             input_order=None,
+             kwarg_names=None,
+             output_names=None,
+             delete_inputs=False,
+             pre_call=None,
+             post_call=None,
+             struct_as_record=False,
+             squeeze_me=True,
+             mat_version='7'):
 
         tempdir = self.tempdir
         if tempdir is None:
@@ -127,7 +190,9 @@ class MatlabCaller(object):
             if len(output_names) > 0:
                 # Save outputs
                 outfile = join(tempdir, 'output_vars.mat')
-                callstr += ' save -v7 %s %s;' % (outfile, output_list)
+
+                assert str(mat_version) in ['4', '6', '7', '7.3']
+                callstr += ' save -v%s %s %s;' % (str(mat_version), outfile, output_list)
 
             # Don't forget to exit matlab
             callstr += ' exit()"'
@@ -167,9 +232,13 @@ class MatlabCaller(object):
 
             if len(output_names) > 0:
                 # Load results
-                result = loadmat(outfile,
-                                 struct_as_record=struct_as_record,
-                                 squeeze_me=squeeze_me)
+                if str(mat_version) in ['4', '6', '7']:
+                    result = loadmat(outfile,
+                                     struct_as_record=struct_as_record,
+                                     squeeze_me=squeeze_me)
+                else:
+                    result = convert_mat_7_3_to_struct(outfile,
+                                                       squeeze_me=squeeze_me)
 
         finally:
             shutil.rmtree(tempdir)
