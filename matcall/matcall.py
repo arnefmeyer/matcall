@@ -61,14 +61,18 @@ def iter_struct(parent, output,
                 if verbose:
                     print("  data set", depth, k)
 
-                if squeeze_me:
-                    value = np.squeeze(np.asarray(child))
+                if child.dtype != np.object:
+                    if squeeze_me:
+                        value = np.squeeze(np.asarray(child[()]))
+                    else:
+                        value = np.asarray(child[()])
+                    setattr(output, k, value)
                 else:
-                    value = np.asarray(child)
-                setattr(output, k, value)
+                    print("skipping mat file object: {}".format(k))
 
 
 def convert_mat_7_3_to_struct(mat_file,
+                              var_name,
                               verbose=False,
                               squeeze_me=True):
 
@@ -76,7 +80,7 @@ def convert_mat_7_3_to_struct(mat_file,
 
     with h5py.File(mat_file, 'r') as f:
 
-        iter_struct(f, result,
+        iter_struct(f[var_name], result,
                     verbose=verbose,
                     squeeze_me=squeeze_me)
 
@@ -237,8 +241,11 @@ class MatlabCaller(object):
                                      struct_as_record=struct_as_record,
                                      squeeze_me=squeeze_me)
                 else:
-                    result = convert_mat_7_3_to_struct(outfile,
-                                                       squeeze_me=squeeze_me)
+                    result = {}
+                    for k in output_names:
+                        result[k] = convert_mat_7_3_to_struct(outfile,
+                                                              k,
+                                                              squeeze_me=squeeze_me)
 
         finally:
             shutil.rmtree(tempdir)
